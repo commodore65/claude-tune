@@ -1,5 +1,7 @@
 # claude-tune
 
+![claude-tune](assets/banner.png)
+
 **Audit and tune your Claude Code setup** — hooks, skills, plugins, MCPs, memory, processes, disk.
 
 Safety-railed, three modes, snapshot-and-rollback on every mutation.
