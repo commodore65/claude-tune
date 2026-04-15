@@ -39,13 +39,32 @@ HEAVY_THRESHOLD = int(os.environ.get("CLAUDE_TUNE_HEAVY", "10"))
 
 
 def load_enabled() -> dict[str, bool]:
+    """Normalize `enabledPlugins` to `{full_name: enabled_bool}`.
+
+    Claude Code stores this key in two shapes depending on the client:
+      - dict form (CLI):       {"foo@mkt": true, "bar@mkt": false}
+      - list form (desktop):   ["foo@mkt", "bar@mkt"]   (membership == enabled)
+
+    This function normalizes both into the dict form so downstream code
+    doesn't need to branch.
+    """
     if not SETTINGS.is_file():
         return {}
     try:
         d = json.load(open(SETTINGS))
     except Exception:
         return {}
-    return d.get("enabledPlugins") or {}
+    ep = d.get("enabledPlugins")
+    if ep is None:
+        return {}
+    if isinstance(ep, dict):
+        return {k: bool(v) for k, v in ep.items()}
+    if isinstance(ep, list):
+        # Desktop app stores a list of enabled plugin IDs.
+        # Anything present in the list is enabled; anything absent is not.
+        return {name: True for name in ep if isinstance(name, str)}
+    # Unexpected type — log nothing, just treat as empty to avoid crashing.
+    return {}
 
 
 def dir_size_bytes(path: Path) -> int:

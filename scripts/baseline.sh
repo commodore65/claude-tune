@@ -62,6 +62,14 @@ def load(path):
     except Exception:
         return {}
 
+def count_enabled(raw):
+    """enabledPlugins is dict[str,bool] in CLI, list[str] in desktop app."""
+    if isinstance(raw, dict):
+        return sum(1 for v in raw.values() if v)
+    if isinstance(raw, list):
+        return sum(1 for n in raw if isinstance(n, str))
+    return 0
+
 s = load(sys.argv[1])
 c = load(sys.argv[2])
 
@@ -70,7 +78,7 @@ hooks = sum(
     for lst in (s.get("hooks") or {}).values()
     for item in (lst or [])
 )
-plugins = sum(1 for v in (s.get("enabledPlugins") or {}).values() if v)
+plugins = count_enabled(s.get("enabledPlugins"))
 mcp = len(c.get("mcpServers") or {})
 projects = len(c.get("projects") or {})
 print(hooks, plugins, mcp, projects)
